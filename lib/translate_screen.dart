@@ -9,7 +9,7 @@ class TranslateScreen extends StatefulWidget {
 
 class _TranslateScreenState extends State<TranslateScreen> {
   static const platform = MethodChannel('app.channel.shared.data');
-  String dataShared = 'No data';
+  String dataShared = '';
 
   @override
   void initState() {
@@ -18,12 +18,12 @@ class _TranslateScreenState extends State<TranslateScreen> {
   }
 
   Future<void> getSharedText() async {
-    var sharedData = await platform.invokeMethod('getSharedText');
-    debugPrint(
-        "\n\n============================================== debug: INDENT=$sharedData ==============================================\n\n");
-    if (sharedData != null) {
+    var intentText = await platform.invokeMethod('getSharedText');
+    debugPrint("DEBUG: asking for intent");
+    if (intentText != null) {
+      debugPrint("DEBUG: INTENT=$intentText");
       setState(() {
-        dataShared = sharedData;
+        dataShared = intentText;
       });
     }
   }
