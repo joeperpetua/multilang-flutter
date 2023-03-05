@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:multilang/settings_screen/languages_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,17 +13,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListView(
       children: <Widget>[
         ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Languages'),
-            onTap: () {}),
+          leading: const Icon(Icons.language),
+          title: const Text('Languages'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LanguagesScreen(),
+              ),
+            );
+          },
+        ),
         ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy'),
-            onTap: () {}),
+          leading: const Icon(Icons.privacy_tip),
+          title: const Text('Privacy'),
+          onTap: () {},
+        ),
         ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About'),
-            onTap: () {}),
+          leading: const Icon(Icons.info),
+          title: const Text('About'),
+          onTap: () {},
+        ),
       ],
     );
   }

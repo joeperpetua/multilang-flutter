@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:multilang/dictionary_screen.dart';
 import 'package:multilang/translate_screen.dart';
+
 import 'package:multilang/settings_screen/settings_screen.dart';
+import 'package:multilang/settings_screen/language_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,12 +17,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MultiLang',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'MultiLang'),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => LanguageModel(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'MultiLang',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const MyHomePage(title: 'MultiLang'),
+      )
     );
   }
 }
@@ -32,6 +43,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
+  final PageController _pageController = PageController(initialPage: 1, keepPage: false);
 
   static final List<Widget> _widgetOptions = <Widget>[
     const DictionaryScreen(),
@@ -39,9 +51,21 @@ class _MyHomePageState extends State<MyHomePage> {
     const SettingsScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
     });
   }
 
@@ -51,7 +75,19 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: Consumer<LanguageModel>(
+        builder: (context, language, child) {
+          return SizedBox.expand(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              children: _widgetOptions,
+            ),
+          );
+        }
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
