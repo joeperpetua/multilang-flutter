@@ -48,26 +48,46 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_languagesToShow.isEmpty){
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: const <Widget>[
+            Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Text.rich(
+                textAlign: TextAlign.center,
+                TextSpan(
+                  style: TextStyle(fontSize: 16),
+                  children: <TextSpan>[
+                    TextSpan(text: 'No languages are selected, please go to '),
+                    TextSpan(text: 'Settings > Languages', style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: ' to select the languages to use.'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } 
     return ListView.builder(
       itemCount: _languagesToShow.length,
       itemBuilder: (context, index) {
         final language = _languagesToShow[index];
-        if (language.selected){
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Text(language.code),
-              ),
-              title: Text(language.name),
-              subtitle: Text(language.selected.toString()),
-              onTap: () {
-                // Add your onTap functionality here
-              },
+        return Card(
+          child: ListTile(
+            leading: CircleAvatar(
+              child: Text(language.code),
             ),
-          );
-        } else {
-          return const Text('');
-        }
+            title: Text(language.name),
+            subtitle: Text(language.selected.toString()),
+            onTap: () {
+              // Add your onTap functionality here
+            },
+          ),
+        );
       }
     );
   }
