@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:multilang/settings_screen/languages_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -8,6 +9,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
   @override
   Widget build(BuildContext context) {
     return ListView(

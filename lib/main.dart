@@ -7,6 +7,10 @@ import 'package:multilang/translate_screen.dart';
 import 'package:multilang/settings_screen/settings_screen.dart';
 import 'package:multilang/settings_screen/language_model.dart';
 
+// import 'dart:developer';
+
+int pageIndex = 1;
+
 void main() {
   runApp(const MyApp());
 }
@@ -37,22 +41,31 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
+    int getPage() {
+    return pageIndex;
+  }
+
+  void setPage(int index) {
+    pageIndex = index;
+  }
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _selectedIndex = 1;
-  final PageController _pageController = PageController(initialPage: 1, keepPage: false);
-
-  static final List<Widget> _widgetOptions = <Widget>[
-    const DictionaryScreen(),
-    const TranslateScreen(),
-    const SettingsScreen(),
+  late PageController _pageController;
+  final List<Widget> _pages = const <Widget>[
+    DictionaryScreen(),
+    TranslateScreen(),
+    SettingsScreen(),
   ];
 
   @override
   void initState() {
+    _pageController = PageController(
+      keepPage: true,
+      initialPage: widget.getPage(),
+    );
     super.initState();
   }
 
@@ -62,12 +75,11 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-    });
-  }
+  // void _onItemTapped(int index) {
+  //   setState(() {
+  //     _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -78,12 +90,17 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Consumer<LanguageModel>(
         builder: (context, language, child) {
           return SizedBox.expand(
-            child: PageView(
+            child: PageView.builder(
+              itemCount: 5,
               controller: _pageController,
-              onPageChanged: (index) {
-                setState(() => _selectedIndex = index);
-              },
-              children: _widgetOptions,
+              onPageChanged: (index) => setState(() {
+                widget.setPage(index);
+                _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+              }),
+              itemBuilder: (context, index) => IndexedStack(
+                index: index,
+                children: _pages,
+              ),
             ),
           );
         }
@@ -103,9 +120,12 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Settings',
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: widget.getPage(),
         selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
+        onTap: (index) => setState(() {
+          widget.setPage(index);
+          _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+        })
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

@@ -3,11 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:multilang/settings_screen/language.dart';
 
-
-
 class LanguageModel extends ChangeNotifier {
   late List<Language> _languages;
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   LanguageModel() {
     _languages = [
@@ -31,10 +29,11 @@ class LanguageModel extends ChangeNotifier {
     _saveLanguages();
   }
 
+  SharedPreferences? get prefs => _prefs;
   List<Language> get languages => _languages;
-  SharedPreferences get prefs => _prefs;
   List<Language> get selectedLanguages => _getSelectedLanguages();
   void get saveLanguages => _saveLanguages();
+  // void setOrder => _setOrder();
 
   List<Language> _getSelectedLanguages() {
     final selectedLanguages = _languages.where((element) => element.selected == true).toList();
@@ -42,7 +41,7 @@ class LanguageModel extends ChangeNotifier {
   }
 
   void _updateLanguages() {
-    final selectedLanguages = _prefs.getStringList('selectedLanguages');
+    final selectedLanguages = _prefs?.getStringList('selectedLanguages');
     if (selectedLanguages != null && selectedLanguages.isNotEmpty) {
       for (final language in _languages) {
         language.selected = selectedLanguages.contains(language.code);
@@ -52,10 +51,17 @@ class LanguageModel extends ChangeNotifier {
 
   void _saveLanguages() async {
     final selectedLanguages = _languages.where(
-        (language) => language.selected
-      ).map(
-        (language) => language.code
-      ).toList();
-    _prefs.setStringList('selectedLanguages', selectedLanguages);
+      (language) => language.selected
+    ).map(
+      (language) => language.code
+    ).toList();
+    _prefs?.setStringList('selectedLanguages', selectedLanguages);
   }
+
+  // void _setOrder(List<Language> abc) async {
+  //   final orderedList = selectedLanguages.map(
+  //     (language) => language.code
+  //   ).toList();
+  //   _prefs?.setStringList('orderedList', orderedList);
+  // }
 }

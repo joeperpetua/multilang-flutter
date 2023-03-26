@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:multilang/settings_screen/language.dart';
 import 'package:multilang/settings_screen/language_model.dart';
 
@@ -30,20 +31,20 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: (text) {
-                  text = text.toLowerCase();
-                  setState(() {
-                    _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages.where((language) {
-                      var languageName = language.name.toLowerCase();
-                      var languageNative = language.native.toLowerCase();
-                      return languageName.contains(text) || languageNative.contains(text);
-                    }).toList();
-                  });
-                }),
+            decoration: const InputDecoration(
+              hintText: 'Search',
+              prefixIcon: Icon(Icons.search),
+            ),
+            onChanged: (text) {
+              text = text.toLowerCase();
+              setState(() {
+                _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages.where((language) {
+                  var languageName = language.name.toLowerCase();
+                  var languageNative = language.native.toLowerCase();
+                  return languageName.contains(text) || languageNative.contains(text);
+                }).toList();
+              });
+            }),
           ),
           Expanded(
             child: ListView.builder(
