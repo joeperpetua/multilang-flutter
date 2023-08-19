@@ -13,7 +13,7 @@ class TranslateScreen extends StatefulWidget {
   State<TranslateScreen> createState() => _TranslateScreenState();
 }
 
-class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAliveClientMixin<TranslateScreen> {
+class _TranslateScreenState extends State<TranslateScreen> {
   List<Language> _selectedLanguages = [];
   String _inputText = '';
   String _cardText = '';
@@ -64,7 +64,6 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     debugPrint("Render triggered.");
     //inspect(_selectedLanguages);
     if (_selectedLanguages.isEmpty){
@@ -134,7 +133,4 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

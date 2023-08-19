@@ -48,6 +48,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int currentPageIndex = 0;
+  // final screenWidgets = <Widget>[
+  //   TranslateScreen(key: GlobalKey()),
+  //   DictionaryScreen(key: GlobalKey()),
+  //   SettingsScreen(key: GlobalKey())
+  // ];
+
+  final screenWidgets = <Widget>[
+    Consumer<LanguageModel>(
+      builder: (context, language, child) {
+        return TranslateScreen(key: GlobalKey());
+      },
+    ),
+    Consumer<LanguageModel>(
+      builder: (context, language, child) {
+        return DictionaryScreen(key: GlobalKey());
+      },
+    ),
+    SettingsScreen(key: GlobalKey()),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +76,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Consumer<LanguageModel>(
         builder: (context, language, child) {
-          return  <Widget>[
-            const TranslateScreen(),
-            const DictionaryScreen(),
-            const SettingsScreen(),
-          ][currentPageIndex];
+          return  IndexedStack(
+            index: currentPageIndex,
+            children: screenWidgets
+          );
         }
       ),
       bottomNavigationBar: NavigationBar(
@@ -73,18 +91,19 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: currentPageIndex,
         destinations: const <Widget>[
           NavigationDestination(
-            selectedIcon: Icon(Icons.home),
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
+            selectedIcon: Icon(Icons.translate),
+            icon: Icon(Icons.translate_outlined),
+            label: 'Translate',
           ),
           NavigationDestination(
-            icon: Icon(Icons.business),
-            label: 'Business',
+            icon: Icon(Icons.menu_book),
+            selectedIcon: Icon(Icons.menu_book_outlined),
+            label: 'Dictionary',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.school),
-            icon: Icon(Icons.school_outlined),
-            label: 'School',
+            selectedIcon: Icon(Icons.settings),
+            icon: Icon(Icons.settings_outlined),
+            label: 'Settings',
           ),
         ],
       ),// This trailing comma makes auto-formatting nicer for build methods.

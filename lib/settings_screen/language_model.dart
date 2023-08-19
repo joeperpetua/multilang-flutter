@@ -25,8 +25,6 @@ class LanguageModel extends ChangeNotifier {
 
   Future<void> initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
-    _updateLanguages();
-    _saveLanguages();
   }
 
   SharedPreferences? get prefs => _prefs;
@@ -40,15 +38,6 @@ class LanguageModel extends ChangeNotifier {
     return selectedLanguages;
   }
 
-  void _updateLanguages() {
-    final selectedLanguages = _prefs?.getStringList('selectedLanguages');
-    if (selectedLanguages != null && selectedLanguages.isNotEmpty) {
-      for (final language in _languages) {
-        language.selected = selectedLanguages.contains(language.code);
-      }
-    }
-  }
-
   void _saveLanguages() async {
     final selectedLanguages = _languages.where(
       (language) => language.selected
@@ -56,6 +45,7 @@ class LanguageModel extends ChangeNotifier {
       (language) => language.code
     ).toList();
     _prefs?.setStringList('selectedLanguages', selectedLanguages);
+    notifyListeners();
   }
 
   // void _setOrder(List<Language> abc) async {
