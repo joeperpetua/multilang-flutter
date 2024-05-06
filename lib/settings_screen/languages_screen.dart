@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-
-//import 'package:multilang/settings_screen/language.dart';
-//import 'package:multilang/settings_screen/language_model.dart';
 import 'package:multilang/services/sqlite_service.dart';
 
 class LanguagesScreen extends StatefulWidget {
@@ -25,7 +21,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       await _refreshLanguages();
       debugPrint('[languages_screen] ====== Languages: $_languageList');
       debugPrint('[languages_screen] ====== Enabled Languages: $_enabledLanguages');
-      setState(() { 
+      setState(() {
         _languagesToShow = _languageList;
       });
     });
@@ -37,11 +33,13 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     setState(() {
       _languageList = data;
       _enabledLanguages = _languageList.where((lang) => lang.isActive()).toList();
+      debugPrint("[languages_screen] ====== Updated Lang list: $_enabledLanguages");
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("[languages_screen] ====== Render triggered. Enabled Langs: $_enabledLanguages");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Languages'),
@@ -51,20 +49,21 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search',
-              prefixIcon: Icon(Icons.search),
+              decoration: const InputDecoration(
+                hintText: 'Search',
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (text) {
+                text = text.toLowerCase();
+                setState(() {
+                  _languagesToShow = _languageList.where((language) {
+                    var languageName = language.displayText.toLowerCase();
+                    var languageNative = language.native.toLowerCase();
+                    return languageName.contains(text) || languageNative.contains(text);
+                  }).toList();
+                });
+              }
             ),
-            onChanged: (text) {
-              text = text.toLowerCase();
-              setState(() {
-                _languagesToShow = _languageList.where((language) {
-                  var languageName = language.displayText.toLowerCase();
-                  var languageNative = language.native.toLowerCase();
-                  return languageName.contains(text) || languageNative.contains(text);
-                }).toList();
-              });
-            }),
           ),
           Expanded(
             child: ListView.builder(
@@ -72,11 +71,16 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               itemBuilder: (context, index) {
                 Map<String, dynamic> currentLanguage = _languagesToShow[index].toMap();
                 return CheckboxListTile(
+                  key: ValueKey(currentLanguage['id']),
                   title: Text(currentLanguage['displayText']!),
                   subtitle: Text(currentLanguage['native']!),
                   value: currentLanguage['active']! == 1 ? true : false,
                   onChanged: (bool? value) async {
+                    debugPrint("[languages_screen] ====== onChange event triggered, updating languages list.");
                     currentLanguage['active'] = value! ? 1 : 0;
+                    setState(() {
+                      _languagesToShow[index] = Language.fromMap(currentLanguage);
+                    });
                     await _sqliteService.updateLanguage(Language.fromMap(currentLanguage));
                     await _refreshLanguages();
                   }
