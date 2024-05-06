@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
-import 'package:multilang/settings_screen/language.dart';
-import 'package:multilang/settings_screen/language_model.dart';
-
+//import 'package:multilang/settings_screen/language.dart';
+//import 'package:multilang/settings_screen/language_model.dart';
+import 'package:multilang/services/sqlite_service.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({super.key});
@@ -12,12 +12,32 @@ class LanguagesScreen extends StatefulWidget {
 }
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
-  late List<Language> _languagesToShow;
+  late SqliteService _sqliteService;
+  late List<Language> _languageList = [];
+  late List<Language> _enabledLanguages = [];
+  late List<Language> _languagesToShow = [];
 
   @override
   void initState() {
     super.initState();
-    _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages;
+    _sqliteService = SqliteService();
+    _sqliteService.initializeDB().whenComplete(() async {
+      await _refreshLanguages();
+      debugPrint('[languages_screen] ====== Languages: $_languageList');
+      debugPrint('[languages_screen] ====== Enabled Languages: $_enabledLanguages');
+      setState(() { 
+        _languagesToShow = _languageList;
+      });
+    });
+  }
+
+  // This function is used to run a state change with the latest DB data
+  Future<void> _refreshLanguages() async {  
+    final data = await _sqliteService.getLanguages();
+    setState(() {
+      _languageList = data;
+      _enabledLanguages = _languageList.where((lang) => lang.isActive()).toList();
+    });
   }
 
   @override
@@ -38,8 +58,8 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             onChanged: (text) {
               text = text.toLowerCase();
               setState(() {
-                _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages.where((language) {
-                  var languageName = language.name.toLowerCase();
+                _languagesToShow = _languageList.where((language) {
+                  var languageName = language.displayText.toLowerCase();
                   var languageNative = language.native.toLowerCase();
                   return languageName.contains(text) || languageNative.contains(text);
                 }).toList();
@@ -50,16 +70,15 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             child: ListView.builder(
               itemCount: _languagesToShow.length,
               itemBuilder: (context, index) {
-                final language = _languagesToShow[index];
+                Map<String, dynamic> currentLanguage = _languagesToShow[index].toMap();
                 return CheckboxListTile(
-                  title: Text(language.name),
-                  subtitle: Text(language.native),
-                  value: language.selected,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      language.selected = value!;
-                      Provider.of<LanguageModel>(context, listen: false).saveLanguages;
-                    });
+                  title: Text(currentLanguage['displayText']!),
+                  subtitle: Text(currentLanguage['native']!),
+                  value: currentLanguage['active']! == 1 ? true : false,
+                  onChanged: (bool? value) async {
+                    currentLanguage['active'] = value! ? 1 : 0;
+                    await _sqliteService.updateLanguage(Language.fromMap(currentLanguage));
+                    await _refreshLanguages();
                   }
                 );
               }

@@ -1,28 +1,47 @@
 import 'package:flutter/material.dart';
 
-import 'package:multilang/settings_screen/language.dart';
+// import 'package:multilang/settings_screen/language.dart';
+import 'package:multilang/services/sqlite_service.dart';
 
 
 class LanguageList extends StatefulWidget {
-  final List<Language> selectedLanguages;
+  final List<Language> enabledLanguages;
   final String data;
 
-  const LanguageList({Key? key, required this.selectedLanguages, required this.data}) : super(key: key);
+  const LanguageList({Key? key, required this.enabledLanguages, required this.data}) : super(key: key);
 
   @override
   State<LanguageList> createState() => _LanguageListState();
 }
 
 class _LanguageListState extends State<LanguageList> {
-  late List<Language> _selectedLanguages;
-  late String _data;
+  late SqliteService _sqliteService;
+  String _data = '';
+  late List<Language> _enabledLanguages = [];
 
-  @override
+ @override
   void initState() {
     super.initState();
-    _selectedLanguages = List.from(widget.selectedLanguages);
-    _data = widget.data;
-    debugPrint('====== Received $_data');
+    
+    _sqliteService = SqliteService();
+    _sqliteService.initializeDB().whenComplete(() async {
+      await _refreshLanguages();
+      debugPrint('[languages_list] ====== Enabled Languages: $_enabledLanguages');
+      setState(() { 
+        _data = widget.data;
+        debugPrint('[languages_list] ====== Received $_data');
+      });
+    });
+    
+  }
+
+  // This function is used to run a state change with the latest DB data
+  Future<void> _refreshLanguages() async {  
+    final data = await _sqliteService.getLanguages();
+    setState(() {
+      _enabledLanguages = data.where((lang) => lang.active == 1).toList();
+    });
+    debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
   }
 
   @override
@@ -33,11 +52,11 @@ class _LanguageListState extends State<LanguageList> {
           if (newIndex > oldIndex) {
             newIndex -= 1;
           }
-          final language = _selectedLanguages.removeAt(oldIndex);
-          _selectedLanguages.insert(newIndex, language);
+          final language = _enabledLanguages.removeAt(oldIndex);
+          _enabledLanguages.insert(newIndex, language);
         });
       },
-      children: _selectedLanguages.map((language) {
+      children: _enabledLanguages.map((language) {
         return Card(
           key: ValueKey(language.code),
           shape: RoundedRectangleBorder(
@@ -62,10 +81,10 @@ class _LanguageListState extends State<LanguageList> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    widget.selectedLanguages.clear();
-    widget.selectedLanguages.addAll(_selectedLanguages);
-  }
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  //   widget.enabledLanguages.clear();
+  //   widget.enabledLanguages.addAll(_enabledLanguages);
+  // }
 }

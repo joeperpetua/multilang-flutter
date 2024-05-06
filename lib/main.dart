@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
+// import 'package:multilang/services/sqlite_service.dart';
 
 import 'package:multilang/dictionary_screen.dart';
 import 'package:multilang/translate_screen.dart';
 
 import 'package:multilang/settings_screen/settings_screen.dart';
-import 'package:multilang/settings_screen/language_model.dart';
 
 // import 'dart:developer';
 
@@ -21,20 +21,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => LanguageModel(),
-        ),
-      ],
-      child: MaterialApp(
+    return MaterialApp(
         title: 'MultiLang',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         home: const MyHomePage(title: 'MultiLang'),
-      )
-    );
+      );
   }
 }
 
@@ -48,25 +41,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int currentPageIndex = 0;
-  // final screenWidgets = <Widget>[
-  //   TranslateScreen(key: GlobalKey()),
-  //   DictionaryScreen(key: GlobalKey()),
-  //   SettingsScreen(key: GlobalKey())
-  // ];
-
-  final screenWidgets = <Widget>[
-    Consumer<LanguageModel>(
-      builder: (context, language, child) {
-        return TranslateScreen(key: GlobalKey());
-      },
-    ),
-    Consumer<LanguageModel>(
-      builder: (context, language, child) {
-        return DictionaryScreen(key: GlobalKey());
-      },
-    ),
-    SettingsScreen(key: GlobalKey()),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -74,13 +48,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Consumer<LanguageModel>(
-        builder: (context, language, child) {
-          return  IndexedStack(
-            index: currentPageIndex,
-            children: screenWidgets
-          );
-        }
+      body: IndexedStack(
+        index: currentPageIndex,
+        children: [TranslateScreen(key: UniqueKey()), DictionaryScreen(key: UniqueKey()), const SettingsScreen()]
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
