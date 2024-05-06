@@ -50,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: IndexedStack(
         index: currentPageIndex,
-        children: [TranslateScreen(key: UniqueKey()), DictionaryScreen(key: UniqueKey()), const SettingsScreen()]
+        // ignore: prefer_const_constructors, prefer_const_literals_to_create_immutables
+        children: [TranslateScreen(), DictionaryScreen(), SettingsScreen()]
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {

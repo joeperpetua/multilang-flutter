@@ -16,18 +16,16 @@ class _TranslateScreenState extends State<TranslateScreen> {
   static const platform = MethodChannel('app.channel.shared.data');
   late SqliteService _sqliteService;
   late List<Language> _enabledLanguages = [];
-  late Settings _settings;
+  String _inputText = "";
 
  @override
   void initState() {
     super.initState();
     _sqliteService = SqliteService();
     _sqliteService.initializeDB().whenComplete(() async {
-      await _refreshSettings();
       await _refreshLanguages();
       _getSharedText();
       debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
-      setState(() { });
     });
   }
 
@@ -40,38 +38,16 @@ class _TranslateScreenState extends State<TranslateScreen> {
     debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
   }
 
-  Future<void> _refreshSettings() async {  
-    Settings data = await _sqliteService.getSettings(); 
-    setState(() {
-      _settings = data;
-    }); 
-  }
-
   Future<void> _getSharedText() async {
     var intentText = await platform.invokeMethod('getSharedText');
     debugPrint("[translate_screen] asking for intent");
     if (intentText != null) {
       debugPrint("[translate_screen] INTENT=$intentText");
       setState(() {
-        Map<String, dynamic> newSettings = _settings.toMap();
-        newSettings['inputText'] = intentText;
-        _sqliteService.updateSettings(Settings.fromMap(newSettings));
+        _inputText = intentText;
       });
-      await _refreshSettings();
-      // focusNode.requestFocus();
     }
   }
-
-  Future<void> _getTranslation(String text) async {
-    setState(() {
-      Map<String, dynamic> newSettings = _settings.toMap();
-      newSettings['inputText'] = text;
-      _sqliteService.updateSettings(Settings.fromMap(newSettings));
-    });
-    await _refreshSettings();
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +81,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     return SizedBox.expand(
       child: Column(
         children: <Widget> [
-          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, data: _settings.inputText)),
+          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, data: _inputText)),
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Container(
@@ -114,7 +90,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 // border: Border.all(width: 0, color: Colors.blue),
               ),
               child: TextFormField(
-                initialValue: _settings.inputText,
+                initialValue: _inputText.isNotEmpty ? _inputText : "",
                 minLines: 6,
                 maxLines: null,
                 keyboardType: TextInputType.text,
@@ -134,7 +110,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 ),
                 onFieldSubmitted: (value) => {
                   setState(() {
-                    _getTranslation(value);
+                    _inputText = value;
                   }),
                 },
               ),
