@@ -6,9 +6,9 @@ import 'package:multilang/services/sqlite_service.dart';
 
 class LanguageList extends StatefulWidget {
   final List<Language> enabledLanguages;
-  final String data;
+  final String text;
 
-  const LanguageList({Key? key, required this.enabledLanguages, required this.data}) : super(key: key);
+  const LanguageList({Key? key, required this.enabledLanguages, required this.text}) : super(key: key);
 
   @override
   State<LanguageList> createState() => _LanguageListState();
@@ -16,7 +16,7 @@ class LanguageList extends StatefulWidget {
 
 class _LanguageListState extends State<LanguageList> {
   late SqliteService _sqliteService;
-  String _data = '';
+  String _text = '';
   late List<Language> _enabledLanguages = [];
 
  @override
@@ -25,13 +25,12 @@ class _LanguageListState extends State<LanguageList> {
     _sqliteService = SqliteService();
     _sqliteService.initializeDB().whenComplete(() async {
       await _refreshLanguages();
-      debugPrint('[languages_list] ====== Enabled Languages: $_enabledLanguages');
+      debugPrint('[languages_list] [init] ====== Enabled Languages: $_enabledLanguages');
       setState(() { 
-        _data = widget.data;
-        debugPrint('[languages_list] ====== Received $_data');
+        _text = widget.text;
+        debugPrint('[languages_list] [init]====== Received $_text');
       });
     });
-    
   }
 
   // This function is used to run a state change with the latest DB data
@@ -41,11 +40,8 @@ class _LanguageListState extends State<LanguageList> {
     setState(() {
       _enabledLanguages = data.where((lang) => lang.active == 1).toList();
     });
-    debugPrint('[translate_screen] [init] ====== Enabled Languages: $_enabledLanguages');
-    debugPrint('[translate_screen] [init] ====== Order:');
-    for (Language lang in _enabledLanguages) {
-      debugPrint('[translate_screen] [init] ============ : ${lang.displayOrder} - ${lang.code}');
-    }
+    debugPrint('[translate_screen] [refresh] ====== Enabled Languages: $_enabledLanguages');
+    printOrder('refresh', _enabledLanguages);
   }
 
   Future<void> _saveOrder(enabledLanguages) async {
@@ -57,6 +53,12 @@ class _LanguageListState extends State<LanguageList> {
     await _refreshLanguages();
   }
 
+  void printOrder(context, list) {
+    debugPrint('[translate_screen] [$context] ====== Order:');
+    for (Language lang in list) {
+      debugPrint('[translate_screen] [$context] ============ : ${lang.displayOrder} - ${lang.code}');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return ReorderableListView(
@@ -66,10 +68,7 @@ class _LanguageListState extends State<LanguageList> {
         }
         final language = _enabledLanguages.removeAt(oldIndex);
         _enabledLanguages.insert(newIndex, language);
-        debugPrint('[translate_screen] [onReOrder] ====== Order:');
-        for (Language lang in _enabledLanguages) {
-          debugPrint('[translate_screen] [onReOrder] ============ : ${lang.displayOrder} - ${lang.code}');
-        }
+        printOrder('onReOrder', _enabledLanguages);
         await _saveOrder(_enabledLanguages);
       },
       children: _enabledLanguages.map((language) {
@@ -85,7 +84,7 @@ class _LanguageListState extends State<LanguageList> {
               leading: CircleAvatar(
                 child: Text(language.code),
               ),
-              title: Text(_data),
+              title: Text(_text),
               // subtitle: Text(language.native),
               onTap: () {
                 // Add your onTap functionality here
@@ -96,11 +95,4 @@ class _LanguageListState extends State<LanguageList> {
       }).toList(),
     );
   }
-
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  //   widget.enabledLanguages.clear();
-  //   widget.enabledLanguages.addAll(_enabledLanguages);
-  // }
 }

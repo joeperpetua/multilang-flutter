@@ -92,7 +92,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     return SizedBox.expand(
       child: Column(
         children: <Widget> [
-          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, data: _inputText)),
+          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, text: _inputText)),
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Container(
