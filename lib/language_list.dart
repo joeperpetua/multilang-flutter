@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 // import 'package:multilang/settings_screen/language.dart';
 import 'package:multilang/services/sqlite_service.dart';
+import 'package:multilang/services/translation.dart';
 
 
 class LanguageList extends StatefulWidget {
   final List<Language> enabledLanguages;
-  final String text;
+  final List<Translation> translations;
 
-  const LanguageList({Key? key, required this.enabledLanguages, required this.text}) : super(key: key);
+  const LanguageList({Key? key, required this.enabledLanguages, required this.translations}) : super(key: key);
 
   @override
   State<LanguageList> createState() => _LanguageListState();
@@ -16,7 +17,7 @@ class LanguageList extends StatefulWidget {
 
 class _LanguageListState extends State<LanguageList> {
   late SqliteService _sqliteService;
-  String _text = '';
+  List<Translation> _translations = [];
   late List<Language> _enabledLanguages = [];
 
  @override
@@ -27,8 +28,8 @@ class _LanguageListState extends State<LanguageList> {
       await _refreshLanguages();
       debugPrint('[languages_list] [init] ====== Enabled Languages: $_enabledLanguages');
       setState(() { 
-        _text = widget.text;
-        debugPrint('[languages_list] [init]====== Received $_text');
+        _translations = widget.translations;
+        debugPrint('[languages_list] [init]====== Received ${_translations.toString()}');
       });
     });
   }
@@ -40,7 +41,7 @@ class _LanguageListState extends State<LanguageList> {
     setState(() {
       _enabledLanguages = data.where((lang) => lang.active == 1).toList();
     });
-    debugPrint('[translate_screen] [refresh] ====== Enabled Languages: $_enabledLanguages');
+    debugPrint('[languages_list] [refresh] ====== Enabled Languages: $_enabledLanguages');
     printOrder('refresh', _enabledLanguages);
   }
 
@@ -54,9 +55,9 @@ class _LanguageListState extends State<LanguageList> {
   }
 
   void printOrder(context, list) {
-    debugPrint('[translate_screen] [$context] ====== Order:');
+    debugPrint('[languages_list] [$context] ====== Order:');
     for (Language lang in list) {
-      debugPrint('[translate_screen] [$context] ============ : ${lang.displayOrder} - ${lang.code}');
+      debugPrint('[languages_list] [$context] ============ : ${lang.displayOrder} - ${lang.code}');
     }
   }
   @override
@@ -72,6 +73,9 @@ class _LanguageListState extends State<LanguageList> {
         await _saveOrder(_enabledLanguages);
       },
       children: _enabledLanguages.map((language) {
+        List<Translation> currentTranslation = _translations.where((translation) => translation.target == language.code).toList();
+        debugPrint("[languages_list] [build] ============ : ${currentTranslation.toString()} - ${currentTranslation.length}");
+        String toDisplay = currentTranslation.isNotEmpty ? currentTranslation.first.text : "";
         return Card(
           key: ValueKey(language.code),
           shape: RoundedRectangleBorder(
@@ -84,7 +88,7 @@ class _LanguageListState extends State<LanguageList> {
               leading: CircleAvatar(
                 child: Text(language.code),
               ),
-              title: Text(_text),
+              title: Text(toDisplay),
               // subtitle: Text(language.native),
               onTap: () {
                 // Add your onTap functionality here

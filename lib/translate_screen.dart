@@ -1,10 +1,15 @@
 // ignore_for_file: unnecessary_brace_in_string_interps
 
+import 'dart:ffi';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:multilang/language_list.dart';
 import 'package:multilang/services/sqlite_service.dart';
+import 'package:multilang/services/translation.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -17,6 +22,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   late SqliteService _sqliteService;
   late List<Language> _enabledLanguages = [];
   String _inputText = "";
+  List<Translation> _translations = [];
 
  @override
   void initState() {
@@ -56,6 +62,37 @@ class _TranslateScreenState extends State<TranslateScreen> {
       setState(() {
         _inputText = intentText;
       });
+      await fetchTranslation(intentText);
+    }
+  }
+
+  Future<void> fetchTranslation(text) async {
+    String url = "https://apiml.joeper.myds.me/translate?q=${text}&sl=auto&tl=";
+    for (var index = 0; index < _enabledLanguages.length; index++){
+      if (index != _enabledLanguages.length - 1) {
+        url += _enabledLanguages[index].code;
+        url += ',';
+      } else {
+        url += _enabledLanguages[index].code;
+      }
+    }
+    debugPrint("[translate_screen] [fetchTranslation] ============= $url");
+    
+    http.Response fetchResponse = await http.get(Uri.parse(url));
+    if (fetchResponse.statusCode == 200) {
+      debugPrint("[translate_screen] [fetchTranslation] ============= ${fetchResponse.body}");
+      final parsedJson = jsonDecode(fetchResponse.body);
+      List<Translation> receivedTranslations = [];
+      for (var translation in parsedJson['translations']) {
+        Translation current = Translation.fromMap(translation);
+        receivedTranslations.add(current);
+      }
+      setState(() {
+        _translations = receivedTranslations;
+        debugPrint("[translate_screen] [fetchTranslation] ============= ${_translations.toString()}");
+      });
+    } else {
+      throw Exception('Failed to fetch translation service. ${fetchResponse.statusCode} || ${fetchResponse.reasonPhrase}');
     }
   }
 
@@ -92,7 +129,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     return SizedBox.expand(
       child: Column(
         children: <Widget> [
-          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, text: _inputText)),
+          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, translations: _translations)),
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Container(
@@ -119,8 +156,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   ),
                   labelText: 'Enter text to translate...',
                 ),
-                onFieldSubmitted: (value) => {
+                onFieldSubmitted: (value) async => {
                   setState(() {
+                    fetchTranslation(value);
                     _inputText = value;
                   }),
                 },
