@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'package:multilang/settings_screen/language.dart';
-import 'package:multilang/settings_screen/language_model.dart';
-
+import 'package:multilang/services/sqlite_service.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({super.key});
@@ -12,16 +8,38 @@ class LanguagesScreen extends StatefulWidget {
 }
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
-  late List<Language> _languagesToShow;
+  late SqliteService _sqliteService;
+  late List<Language> _languageList = [];
+  late List<Language> _enabledLanguages = [];
+  late List<Language> _languagesToShow = [];
 
   @override
   void initState() {
     super.initState();
-    _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages;
+    _sqliteService = SqliteService();
+    _sqliteService.initializeDB().whenComplete(() async {
+      await _refreshLanguages();
+      debugPrint('[languages_screen] ====== Languages: $_languageList');
+      debugPrint('[languages_screen] ====== Enabled Languages: $_enabledLanguages');
+      setState(() {
+        _languagesToShow = _languageList;
+      });
+    });
+  }
+
+  // This function is used to run a state change with the latest DB data
+  Future<void> _refreshLanguages() async {  
+    final data = await _sqliteService.getLanguages();
+    setState(() {
+      _languageList = data;
+      _enabledLanguages = _languageList.where((lang) => lang.isActive()).toList();
+      debugPrint("[languages_screen] ====== Updated Lang list: $_enabledLanguages");
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("[languages_screen] ====== Render triggered. Enabled Langs: $_enabledLanguages");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Languages'),
@@ -31,35 +49,40 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search',
-              prefixIcon: Icon(Icons.search),
+              decoration: const InputDecoration(
+                hintText: 'Search',
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (text) {
+                text = text.toLowerCase();
+                setState(() {
+                  _languagesToShow = _languageList.where((language) {
+                    var languageName = language.displayText.toLowerCase();
+                    var languageNative = language.native.toLowerCase();
+                    return languageName.contains(text) || languageNative.contains(text);
+                  }).toList();
+                });
+              }
             ),
-            onChanged: (text) {
-              text = text.toLowerCase();
-              setState(() {
-                _languagesToShow = Provider.of<LanguageModel>(context, listen: false).languages.where((language) {
-                  var languageName = language.name.toLowerCase();
-                  var languageNative = language.native.toLowerCase();
-                  return languageName.contains(text) || languageNative.contains(text);
-                }).toList();
-              });
-            }),
           ),
           Expanded(
             child: ListView.builder(
               itemCount: _languagesToShow.length,
               itemBuilder: (context, index) {
-                final language = _languagesToShow[index];
+                Map<String, dynamic> currentLanguage = _languagesToShow[index].toMap();
                 return CheckboxListTile(
-                  title: Text(language.name),
-                  subtitle: Text(language.native),
-                  value: language.selected,
-                  onChanged: (bool? value) {
+                  key: ValueKey(currentLanguage['id']),
+                  title: Text(currentLanguage['displayText']!),
+                  subtitle: Text(currentLanguage['native']!),
+                  value: currentLanguage['active']! == 1 ? true : false,
+                  onChanged: (bool? value) async {
+                    debugPrint("[languages_screen] ====== onChange event triggered, updating languages list.");
+                    currentLanguage['active'] = value! ? 1 : 0;
                     setState(() {
-                      language.selected = value!;
-                      Provider.of<LanguageModel>(context, listen: false).saveLanguages;
+                      _languagesToShow[index] = Language.fromMap(currentLanguage);
                     });
+                    await _sqliteService.updateLanguage(Language.fromMap(currentLanguage));
+                    await _refreshLanguages();
                   }
                 );
               }

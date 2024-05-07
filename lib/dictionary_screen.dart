@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// import 'package:multilang/services/sqlite_service.dart';
+
 class DictionaryScreen extends StatefulWidget {
   const DictionaryScreen({super.key});
   @override
@@ -9,11 +11,11 @@ class DictionaryScreen extends StatefulWidget {
 class _DictionaryScreenState extends State<DictionaryScreen> {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: const <Widget>[
+        children: <Widget>[
           Text(
             'Coming soon...',
           ),

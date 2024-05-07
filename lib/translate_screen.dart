@@ -1,11 +1,10 @@
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:provider/provider.dart';
-
 import 'package:multilang/language_list.dart';
-import 'package:multilang/settings_screen/language.dart';
-import 'package:multilang/settings_screen/language_model.dart';
+import 'package:multilang/services/sqlite_service.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -13,66 +12,65 @@ class TranslateScreen extends StatefulWidget {
   State<TranslateScreen> createState() => _TranslateScreenState();
 }
 
-class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAliveClientMixin<TranslateScreen> {
-  List<Language> _selectedLanguages = [];
-  String _inputText = '';
-  String _cardText = '';
-  
+class _TranslateScreenState extends State<TranslateScreen> {
   static const platform = MethodChannel('app.channel.shared.data');
+  late SqliteService _sqliteService;
+  late List<Language> _enabledLanguages = [];
+  String _inputText = "";
 
-  late FocusNode focusNode;
-
-  @override
+ @override
   void initState() {
-    _loadDataFromModel();
-    _getSharedText();
-    focusNode = FocusNode();
     super.initState();
+    _sqliteService = SqliteService();
+    _sqliteService.initializeDB().whenComplete(() async {
+      await _refreshLanguages();
+      _getSharedText();
+      debugPrint('[translate_screen] [initDB] ====== Enabled Languages: $_enabledLanguages');
+      setState(() {
+        _refreshLanguages();
+      });
+    });   
   }
 
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
-  }
-
-  void _loadDataFromModel() async {
-    await Provider.of<LanguageModel>(context, listen: false).initPrefs();
-
-    setState(() {
-      _selectedLanguages = Provider.of<LanguageModel>(context, listen: false).selectedLanguages;
-    });
+  // This function is used to run a state change with the latest DB data
+  Future<void> _refreshLanguages() async {
+    final languages = await _sqliteService.getLanguages();
+    List<Language> enabledInDB = languages.where((lang) => lang.active == 1).toList();
+    debugPrint('[translate_screen] [refreshLang] ====== Current: ${_enabledLanguages.length} || Fetch from DB: ${enabledInDB.length}');
+    if (_enabledLanguages.length != enabledInDB.length){
+      setState(() {
+        _enabledLanguages = enabledInDB;
+      });
+      debugPrint('[translate_screen] [refreshLang] ====== Updated state: $_enabledLanguages');
+    } else {
+      debugPrint('[translate_screen] [refreshLang] ====== Omit state update');
+    }
+    
   }
 
   Future<void> _getSharedText() async {
     var intentText = await platform.invokeMethod('getSharedText');
-    debugPrint("DEBUG: asking for intent");
+    debugPrint("[translate_screen] asking for intent");
     if (intentText != null) {
-      debugPrint("DEBUG: INTENT=$intentText");
+      debugPrint("[translate_screen] INTENT=$intentText");
       setState(() {
         _inputText = intentText;
       });
-      focusNode.requestFocus();
     }
-  }
-
-  Future<void> _getTranslation(String text) async {
-    setState(() {
-      _cardText = text;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    debugPrint("Render triggered.");
-    //inspect(_selectedLanguages);
-    if (_selectedLanguages.isEmpty){
-      return Center(
+    debugPrint("[translate_screen] [build] Render triggered.");
+    _refreshLanguages();
+    debugPrint("[translate_screen] [build] ${_enabledLanguages.toString()}");
+    debugPrint("[translate_screen] [build] ${_enabledLanguages.isEmpty.toString()} || ${_enabledLanguages.length}");
+    if (_enabledLanguages.isEmpty){
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const <Widget>[
+          children: <Widget>[
             Padding(
               padding: EdgeInsets.all(24.0),
               child: Text.rich(
@@ -91,11 +89,10 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
         ),
       );
     }
-    debugPrint("Input text: $_inputText");
     return SizedBox.expand(
       child: Column(
         children: <Widget> [
-          Expanded(child: LanguageList(key: UniqueKey(), selectedLanguages: _selectedLanguages, data: _cardText)),
+          Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, text: _inputText)),
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Container(
@@ -104,11 +101,11 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
                 // border: Border.all(width: 0, color: Colors.blue),
               ),
               child: TextFormField(
-                initialValue: _inputText,
+                initialValue: _inputText.isNotEmpty ? _inputText : "",
                 minLines: 6,
                 maxLines: null,
                 keyboardType: TextInputType.text,
-                focusNode: focusNode,
+                // focusNode: focusNode,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -122,11 +119,11 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
                   ),
                   labelText: 'Enter text to translate...',
                 ),
-                onChanged: (value) => setState(() {
-                  _inputText = value;
-                  debugPrint("Changed text: $_inputText");
-                }),
-                onFieldSubmitted: _getTranslation,
+                onFieldSubmitted: (value) => {
+                  setState(() {
+                    _inputText = value;
+                  }),
+                },
               ),
             ),
           ),
@@ -134,7 +131,4 @@ class _TranslateScreenState extends State<TranslateScreen> with AutomaticKeepAli
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
