@@ -22,7 +22,6 @@ class _LanguageListState extends State<LanguageList> {
  @override
   void initState() {
     super.initState();
-    
     _sqliteService = SqliteService();
     _sqliteService.initializeDB().whenComplete(() async {
       await _refreshLanguages();
@@ -38,23 +37,40 @@ class _LanguageListState extends State<LanguageList> {
   // This function is used to run a state change with the latest DB data
   Future<void> _refreshLanguages() async {  
     final data = await _sqliteService.getLanguages();
+    data.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
     setState(() {
       _enabledLanguages = data.where((lang) => lang.active == 1).toList();
     });
-    debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
+    debugPrint('[translate_screen] [init] ====== Enabled Languages: $_enabledLanguages');
+    debugPrint('[translate_screen] [init] ====== Order:');
+    for (Language lang in _enabledLanguages) {
+      debugPrint('[translate_screen] [init] ============ : ${lang.displayOrder} - ${lang.code}');
+    }
+  }
+
+  Future<void> _saveOrder(enabledLanguages) async {
+    for (var index = 0; index < enabledLanguages.length; index++) {
+      Map<String, dynamic> currentLanguage = enabledLanguages[index].toMap();
+      currentLanguage['displayOrder'] = index;
+      await _sqliteService.updateLanguage(Language.fromMap(currentLanguage));
+    }
+    await _refreshLanguages();
   }
 
   @override
   Widget build(BuildContext context) {
     return ReorderableListView(
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
-          final language = _enabledLanguages.removeAt(oldIndex);
-          _enabledLanguages.insert(newIndex, language);
-        });
+      onReorder: (oldIndex, newIndex) async {
+        if (newIndex > oldIndex) {
+          newIndex -= 1;
+        }
+        final language = _enabledLanguages.removeAt(oldIndex);
+        _enabledLanguages.insert(newIndex, language);
+        debugPrint('[translate_screen] [onReOrder] ====== Order:');
+        for (Language lang in _enabledLanguages) {
+          debugPrint('[translate_screen] [onReOrder] ============ : ${lang.displayOrder} - ${lang.code}');
+        }
+        await _saveOrder(_enabledLanguages);
       },
       children: _enabledLanguages.map((language) {
         return Card(

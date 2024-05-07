@@ -19,7 +19,7 @@ class SqliteService {
         );
 
         for (var language in languages) {
-          String insertQuery = 'INSERT into languages(displayText, native, code, active, displayOrder) VALUES("${language['name']!}", "${language['native']}", "${language['code']!}", 0, -1)';
+          String insertQuery = 'INSERT into languages(displayText, native, code, active, displayOrder) VALUES("${language['name']!}", "${language['native']}", "${language['code']!}", 0, 999)';
           await database.rawInsert(insertQuery);
         }
       },

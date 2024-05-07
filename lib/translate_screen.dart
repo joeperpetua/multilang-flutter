@@ -25,17 +25,27 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _sqliteService.initializeDB().whenComplete(() async {
       await _refreshLanguages();
       _getSharedText();
-      debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
-    });
+      debugPrint('[translate_screen] [initDB] ====== Enabled Languages: $_enabledLanguages');
+      setState(() {
+        _refreshLanguages();
+      });
+    });   
   }
 
   // This function is used to run a state change with the latest DB data
-  Future<void> _refreshLanguages() async {  
+  Future<void> _refreshLanguages() async {
     final languages = await _sqliteService.getLanguages();
-    setState(() {
-      _enabledLanguages = languages.where((lang) => lang.active == 1).toList();
-    });
-    debugPrint('[translate_screen] ====== Enabled Languages: $_enabledLanguages');
+    List<Language> enabledInDB = languages.where((lang) => lang.active == 1).toList();
+    debugPrint('[translate_screen] [refreshLang] ====== Current: ${_enabledLanguages.length} || Fetch from DB: ${enabledInDB.length}');
+    if (_enabledLanguages.length != enabledInDB.length){
+      setState(() {
+        _enabledLanguages = enabledInDB;
+      });
+      debugPrint('[translate_screen] [refreshLang] ====== Updated state: $_enabledLanguages');
+    } else {
+      debugPrint('[translate_screen] [refreshLang] ====== Omit state update');
+    }
+    
   }
 
   Future<void> _getSharedText() async {
@@ -51,9 +61,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("[translate_screen] Render triggered.");
-    debugPrint("[translate_screen] ${_enabledLanguages.toString()}");
-    //inspect(_selectedLanguages);
+    debugPrint("[translate_screen] [build] Render triggered.");
+    _refreshLanguages();
+    debugPrint("[translate_screen] [build] ${_enabledLanguages.toString()}");
+    debugPrint("[translate_screen] [build] ${_enabledLanguages.isEmpty.toString()} || ${_enabledLanguages.length}");
     if (_enabledLanguages.isEmpty){
       return const Center(
         child: Column(
