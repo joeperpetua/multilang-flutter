@@ -22,6 +22,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   late List<Language> _enabledLanguages = [];
   String _inputText = "";
   List<Translation> _translations = [];
+  bool _isLoading = false;
 
  @override
   void initState() {
@@ -66,6 +67,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
   }
 
   Future<void> fetchTranslation(text) async {
+    setState(() {
+      _isLoading = true;
+    });
     String url = "https://apiml.joeper.myds.me/translate?q=${text}&sl=auto&tl=";
     for (var index = 0; index < _enabledLanguages.length; index++){
       if (index != _enabledLanguages.length - 1) {
@@ -87,10 +91,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
         receivedTranslations.add(current);
       }
       setState(() {
+        _isLoading = false;
         _translations = receivedTranslations;
         debugPrint("[translate_screen] [fetchTranslation] ============= ${_translations.toString()}");
       });
     } else {
+      setState(() {
+        _isLoading = false;
+      });
       throw Exception('Failed to fetch translation service. ${fetchResponse.statusCode} || ${fetchResponse.reasonPhrase}');
     }
   }
@@ -131,19 +139,19 @@ class _TranslateScreenState extends State<TranslateScreen> {
         children: <Widget> [
           Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, translations: _translations)),
           Container(
-            padding: const EdgeInsets.only(top: 0, left: 8, bottom: 18, right: 18.0),
+            padding: const EdgeInsets.only(top: 8, left: 8, bottom: 18, right: 18.0),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              // border: Border.all(width: 0, color: Colors.blue),
+            ),
             child: Row (
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget> [
-                Expanded(child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      // border: Border.all(width: 0, color: Colors.blue),
-                    ),
-                    child: TextFormField(
+                Expanded(child: TextFormField(
                       initialValue: _inputText.isNotEmpty ? _inputText : "",
                       minLines: 6,
-                      maxLines: null,
+                      maxLines: 6,
                       keyboardType: TextInputType.multiline,
                       textInputAction: TextInputAction.newline,
                       // focusNode: focusNode,
@@ -165,7 +173,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
                       },
                     ),
                   ),
-                ),
                 Container (
                   margin: const EdgeInsets.only(left: 8.0),
                   child: Column(
@@ -190,7 +197,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
                                 _inputText = tempInputText;
                               })
                             },
-                            child: const Icon(Icons.subdirectory_arrow_left_rounded),
+                            child: _isLoading ? 
+                              const SizedBox(width: 25, height: 25, child: CircularProgressIndicator()) 
+                              : 
+                              const Icon(Icons.subdirectory_arrow_left_rounded),
                           ),
                         ),
                       ),

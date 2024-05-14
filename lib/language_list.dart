@@ -88,7 +88,7 @@ class _LanguageListState extends State<LanguageList> {
               leading: CircleAvatar(
                 child: Text(language.code),
               ),
-              title: Text(toDisplay),
+              title: Text(toDisplay, textDirection: language.code == 'ara' ? TextDirection.rtl : TextDirection.ltr,),
               // subtitle: Text(language.native),
               onTap: () {
                 // Add your onTap functionality here
