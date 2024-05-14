@@ -1,6 +1,5 @@
 // ignore_for_file: unnecessary_brace_in_string_interps
 
-import 'dart:ffi';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -102,6 +101,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _refreshLanguages();
     debugPrint("[translate_screen] [build] ${_enabledLanguages.toString()}");
     debugPrint("[translate_screen] [build] ${_enabledLanguages.isEmpty.toString()} || ${_enabledLanguages.length}");
+    String tempInputText = "";
     if (_enabledLanguages.isEmpty){
       return const Center(
         child: Column(
@@ -130,41 +130,92 @@ class _TranslateScreenState extends State<TranslateScreen> {
       child: Column(
         children: <Widget> [
           Expanded(child: LanguageList(key: UniqueKey(), enabledLanguages: _enabledLanguages, translations: _translations)),
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                // border: Border.all(width: 0, color: Colors.blue),
-              ),
-              child: TextFormField(
-                initialValue: _inputText.isNotEmpty ? _inputText : "",
-                minLines: 6,
-                maxLines: null,
-                keyboardType: TextInputType.text,
-                // focusNode: focusNode,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  alignLabelWithHint: true,
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(width: 1, color: Colors.blue),
-                    borderRadius: BorderRadius.circular(20),
+          Container(
+            padding: const EdgeInsets.only(top: 0, left: 8, bottom: 18, right: 18.0),
+            child: Row (
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget> [
+                Expanded(child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      // border: Border.all(width: 0, color: Colors.blue),
+                    ),
+                    child: TextFormField(
+                      initialValue: _inputText.isNotEmpty ? _inputText : "",
+                      minLines: 6,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      // focusNode: focusNode,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        alignLabelWithHint: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(width: 1, color: Colors.blue),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        labelText: 'Enter text to translate...',
+                      ),
+                      onChanged: (value) => {
+                        tempInputText = value
+                      },
+                    ),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  labelText: 'Enter text to translate...',
                 ),
-                onFieldSubmitted: (value) async => {
-                  setState(() {
-                    fetchTranslation(value);
-                    _inputText = value;
-                  }),
-                },
-              ),
-            ),
-          ),
+                Container (
+                  margin: const EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget> [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 4.0),
+                        child: SizedBox(
+                          height: 75,
+                          width: 75,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)
+                              ),
+                            ),
+                            onPressed: () async => {
+                              await fetchTranslation(tempInputText),
+                              FocusManager.instance.primaryFocus?.unfocus(),
+                              setState(() {
+                                _inputText = tempInputText;
+                              })
+                            },
+                            child: const Icon(Icons.subdirectory_arrow_left_rounded),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 4.0),
+                        child: SizedBox(
+                          height: 100,
+                          width: 75,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)
+                              ),
+                            ),
+                            onPressed: () => {},
+                            child: const Icon(Icons.mic),
+                          ),
+                        )
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          )
         ],
       ),
     );
