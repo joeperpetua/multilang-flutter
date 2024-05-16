@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // import 'package:multilang/settings_screen/language.dart';
 import 'package:multilang/services/sqlite_service.dart';
@@ -86,17 +87,33 @@ class _LanguageListState extends State<LanguageList> {
               side: const BorderSide(width: 1, color: Colors.blue),
               borderRadius: BorderRadius.circular(20),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Text(language.code),
-              ),
-              title: Text(toDisplay, textDirection: language.code == 'ara' ? TextDirection.rtl : TextDirection.ltr,),
-              // subtitle: Text(language.native),
-              onTap: () {
-                // Add your onTap functionality here
+          child: ListTile(
+            contentPadding: const EdgeInsets.fromLTRB(16, 8, 0, 8),
+            leading: CircleAvatar(
+              child: Text(language.code),
+            ),
+            title: Text(toDisplay, textDirection: language.code == 'ara' ? TextDirection.rtl : TextDirection.ltr,),
+            trailing: PopupMenuButton(
+              onSelected: (value) {
+                debugPrint("[languages_list] [onSelectedMenuOption] Selected: $value");
+                switch(value) {
+                  case "copy":
+                    Clipboard.setData(ClipboardData(text: toDisplay)).then((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied translation to clipboard!")));
+                    });
+                }
+                
               },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                const PopupMenuItem(
+                  value: "copy",
+                  child: Text("Copy"),
+                ),
+                const PopupMenuItem(
+                  value: "listen",
+                  child: Text("Listen"),
+                )
+              ],
             ),
           ),
         );
