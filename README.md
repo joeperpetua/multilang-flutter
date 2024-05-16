@@ -12,7 +12,7 @@
 
 <a href="https://github.com/joeperpetua/multilang-app" rel="noreferrer" target="_blank" class="project-link">App Android Native Repository</a>  
 <a href="https://github.com/joeperpetua/multilang-flutter" rel="noreferrer" target="_blank" class="project-link">App Flutter Repository</a>  
-<a href="https://github.com/joeperpetua/multilang-api/" rel="noreferrer" target="_blank" class="project-link">API Repository</a>
+<a href="https://github.com/joeperpetua/multilang-api/" rel="noreferrer" target="_blank" class="project-link">API Repository</a>  
 <a href="https://joeperpetua.github.io/multilang" rel="noreferrer" target="_blank" class="project-link">Online Demo</a>
 <hr>
 </div>
