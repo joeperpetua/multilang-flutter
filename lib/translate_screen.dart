@@ -197,8 +197,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
                               ),
                             ),
                             onPressed: () async => {
-                              await fetchTranslation(context, tempInputText),
                               FocusManager.instance.primaryFocus?.unfocus(),
+                              await fetchTranslation(context, tempInputText),
                               setState(() {
                                 _inputText = tempInputText;
                               })
