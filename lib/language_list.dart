@@ -60,17 +60,21 @@ class _LanguageListState extends State<LanguageList> {
       debugPrint('[languages_list] [$context] ============ : ${lang.displayOrder} - ${lang.code}');
     }
   }
+  
   @override
   Widget build(BuildContext context) {
+    printOrder("build", _enabledLanguages);
     return ReorderableListView(
-      onReorder: (oldIndex, newIndex) async {
-        if (newIndex > oldIndex) {
-          newIndex -= 1;
-        }
-        final language = _enabledLanguages.removeAt(oldIndex);
-        _enabledLanguages.insert(newIndex, language);
-        printOrder('onReOrder', _enabledLanguages);
-        await _saveOrder(_enabledLanguages);
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (newIndex > oldIndex) {
+            newIndex -= 1;
+          }
+          final language = _enabledLanguages.removeAt(oldIndex);
+          _enabledLanguages.insert(newIndex, language); // Render current reordered state
+          printOrder('onReOrder', _enabledLanguages);
+          _saveOrder(_enabledLanguages); // Save current reordered state, and trigger a re-render will updated data from DB
+        });
       },
       children: _enabledLanguages.map((language) {
         List<Translation> currentTranslation = _translations.where((translation) => translation.target == language.code).toList();
