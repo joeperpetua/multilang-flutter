@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:multilang/language_list.dart';
 import 'package:multilang/services/sqlite_service.dart';
 import 'package:multilang/services/translation.dart';
+import 'package:multilang/services/utils.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -215,7 +216,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                                 borderRadius: BorderRadius.circular(20)
                               ),
                             ),
-                            onPressed: () => {},
+                            onPressed: () => showBanner(context, "Feature not supported yet!", Durations.extralong4),
                             child: const Icon(Icons.mic),
                           ),
                         )

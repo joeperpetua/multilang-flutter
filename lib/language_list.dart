@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 // import 'package:multilang/settings_screen/language.dart';
 import 'package:multilang/services/sqlite_service.dart';
 import 'package:multilang/services/translation.dart';
-
+import 'package:multilang/services/utils.dart';
 
 class LanguageList extends StatefulWidget {
   final List<Language> enabledLanguages;
@@ -20,6 +20,7 @@ class _LanguageListState extends State<LanguageList> {
   late SqliteService _sqliteService;
   List<Translation> _translations = [];
   late List<Language> _enabledLanguages = [];
+  final List<String> _rtlLanguages = ['ara', 'heb', 'fas', 'yid'];
 
  @override
   void initState() {
@@ -92,17 +93,23 @@ class _LanguageListState extends State<LanguageList> {
             leading: CircleAvatar(
               child: Text(language.code),
             ),
-            title: Text(toDisplay, textDirection: language.code == 'ara' ? TextDirection.rtl : TextDirection.ltr,),
+            title: Text(
+              toDisplay,
+              textDirection: _rtlLanguages.singleWhere(
+                (element) => element == language.code, orElse: () => 'ltr') != 'ltr' ? TextDirection.rtl : TextDirection.ltr,
+              ),
             trailing: PopupMenuButton(
               onSelected: (value) {
                 debugPrint("[languages_list] [onSelectedMenuOption] Selected: $value");
                 switch(value) {
                   case "copy":
                     Clipboard.setData(ClipboardData(text: toDisplay)).then((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied translation to clipboard!")));
+                      showBanner(context, "Copied translation to clipboard!", Durations.extralong4);
                     });
+                    break;
+                  case "listen":
+                    showBanner(context, "Feature not supported yet!", Durations.extralong4);
                 }
-                
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry>[
                 const PopupMenuItem(
