@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 import 'package:multilang/settings_screen/languages_screen.dart';
 
@@ -9,6 +11,12 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  Future<void> _launchUrl(url) async {
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -28,12 +36,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           leading: const Icon(Icons.privacy_tip),
           title: const Text('Privacy'),
-          onTap: () {},
+          onTap: () async {
+            await _launchUrl(Uri.parse("https://joeperpetua.github.io/multilang/privacy-policy.html"));
+          },
         ),
         ListTile(
           leading: const Icon(Icons.info),
           title: const Text('About'),
-          onTap: () {},
+          onTap: () async {
+            await _launchUrl(Uri.parse("https://joeperpetua.github.io/#multilang"));
+          },
         ),
       ],
     );
