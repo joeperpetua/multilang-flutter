@@ -104,11 +104,11 @@ class _LanguageListState extends State<LanguageList> {
                 switch(value) {
                   case "copy":
                     Clipboard.setData(ClipboardData(text: toDisplay)).then((_) {
-                      showBanner(context, "Copied translation to clipboard!", Durations.extralong4);
+                      showBanner(context, "Copied translation to clipboard!", const Duration(seconds: 1));
                     });
                     break;
                   case "listen":
-                    showBanner(context, "Feature not supported yet!", Durations.extralong4);
+                    showBanner(context, "Feature not supported yet!", const Duration(seconds: 1));
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry>[

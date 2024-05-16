@@ -29,14 +29,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
   void initState() {
     super.initState();
     _sqliteService = SqliteService();
-    _sqliteService.initializeDB().whenComplete(() async {
-      await _refreshLanguages();
-      _getSharedText();
-      debugPrint('[translate_screen] [initDB] ====== Enabled Languages: $_enabledLanguages');
+    _sqliteService.initializeDB().whenComplete(() {
       setState(() {
-        _refreshLanguages();
+        _refreshLanguages().then((_) {
+          _getSharedText(context);
+          debugPrint('[translate_screen] [initDB] ====== Enabled Languages: $_enabledLanguages');
+        });
       });
-    });   
+    });
   }
 
   // This function is used to run a state change with the latest DB data
@@ -55,7 +55,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     
   }
 
-  Future<void> _getSharedText() async {
+  Future<void> _getSharedText(BuildContext context) async {
     var intentText = await platform.invokeMethod('getSharedText');
     debugPrint("[translate_screen] asking for intent");
     if (intentText != null) {
@@ -63,15 +63,17 @@ class _TranslateScreenState extends State<TranslateScreen> {
       setState(() {
         _inputText = intentText;
       });
-      await fetchTranslation(intentText);
+      // ignore: use_build_context_synchronously
+      await fetchTranslation(context, intentText);
     }
   }
 
-  Future<void> fetchTranslation(text) async {
+  Future<void> fetchTranslation(context, text) async {
     setState(() {
       _isLoading = true;
     });
     String url = "https://apiml.joeper.myds.me/translate?q=${text}&sl=auto&tl=";
+    debugPrint("[translate_screen] [fetchTranslation] ============= $_enabledLanguages");
     for (var index = 0; index < _enabledLanguages.length; index++){
       if (index != _enabledLanguages.length - 1) {
         url += _enabledLanguages[index].code;
@@ -100,6 +102,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
       setState(() {
         _isLoading = false;
       });
+      showBanner(context, "Something wrong happened 😭... (${fetchResponse.statusCode})", const Duration(seconds: 5));
       throw Exception('Failed to fetch translation service. ${fetchResponse.statusCode} || ${fetchResponse.reasonPhrase}');
     }
   }
@@ -107,7 +110,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint("[translate_screen] [build] Render triggered.");
-    _refreshLanguages();
+    if (mounted) {
+      _refreshLanguages();
+    }
     debugPrint("[translate_screen] [build] ${_enabledLanguages.toString()}");
     debugPrint("[translate_screen] [build] ${_enabledLanguages.isEmpty.toString()} || ${_enabledLanguages.length}");
     String tempInputText = "";
@@ -192,7 +197,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                               ),
                             ),
                             onPressed: () async => {
-                              await fetchTranslation(tempInputText),
+                              await fetchTranslation(context, tempInputText),
                               FocusManager.instance.primaryFocus?.unfocus(),
                               setState(() {
                                 _inputText = tempInputText;
