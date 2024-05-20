@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:multilang/language_list.dart';
@@ -172,7 +173,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        labelText: 'Enter text to translate...',
+                        labelText: AppLocalizations.of(context)!.translateInputTooltip,
                       ),
                       onChanged: (value) => {
                         tempInputText = value

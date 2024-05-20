@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // import 'package:multilang/services/sqlite_service.dart';
 
 import 'package:multilang/dictionary_screen.dart';
@@ -26,6 +26,8 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const MyHomePage(title: 'MultiLang'),
       );
   }

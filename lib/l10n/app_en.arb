@@ -1,0 +1,6 @@
+{
+  "translateInputTooltip": "Enter text to translate...",
+  "@translateInputTooltip": {
+    "description": "The conventional newborn programmer greeting"
+  }
+}
